@@ -1,0 +1,20 @@
+[
+  {
+    "id": "bank-savings",
+    "institution": "Example Bank",
+    "account": "High-yield savings",
+    "category": "asset",
+    "balance": 10000,
+    "apy": 0.04,
+    "as_of": "2026-01-01"
+  },
+  {
+    "id": "bank-card",
+    "institution": "Example Bank",
+    "account": "Credit card balance owed",
+    "category": "liability",
+    "balance": 250,
+    "apy": null,
+    "as_of": "2026-01-01"
+  }
+]

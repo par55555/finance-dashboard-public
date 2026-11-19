@@ -1,0 +1,8 @@
+# Real personal data never goes in the repo; only *.example.json files do.
+data/*.json
+!data/*.example.json
+*.local.*
+.env
+.env.*
+*.key
+*.pem

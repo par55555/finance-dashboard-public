@@ -1,0 +1,570 @@
+<meta name="dash-one-writer">
+<style>
+  .mk { font-family: var(--font-anthropic-sans); color: var(--color-fg); display: flex; flex-direction: column; gap: var(--cds-gap-xl); }
+  .mk b { font-weight: var(--cds-font-weight-medium); }
+  .mk h1 { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); margin: 0 0 var(--cds-gap-xs); }
+  .mk-take { margin: 0; color: var(--color-fg-muted); font-size: var(--cds-font-size-body); max-width: 62rem; line-height: 1.5; }
+  .mk-take b { color: var(--color-fg); }
+  .mk-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 9.5rem), 1fr)); gap: var(--cds-gap-md); }
+  .mk-kpi { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-md) var(--cds-pad-lg); }
+  .mk-kpi-label { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); margin: 0; }
+  .mk-kpi-val { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); margin: var(--cds-gap-xs) 0; font-variant-numeric: tabular-nums; min-height: 1.3em; }
+  .mk-kpi-sub { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); margin: 0; font-variant-numeric: tabular-nums; min-height: 1.2em; }
+  .mk-up { color: var(--color-ok); }
+  .mk-down { color: var(--color-bad); }
+  .mk-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 24rem), 1fr)); gap: var(--cds-gap-md); }
+  .mk-card { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-lg); min-width: 0; }
+  .mk-card h2 { font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); margin: 0; }
+  .mk-note { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); margin: var(--cds-gap-xs) 0 var(--cds-gap-md); }
+  .mk-chart { position: relative; min-height: 16rem; }
+  .mk-div { display: flex; flex-direction: column; gap: 3px; }
+  .mk-div-row { display: grid; grid-template-columns: minmax(6rem, 10rem) 1fr 1fr 4.5rem; align-items: center; gap: var(--cds-gap-xs); font-size: var(--cds-font-size-caption); padding: 2px 0; }
+  .mk-div-row:hover { background: var(--cds-chart-grid); }
+  .mk-div-label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .mk-div-neg { display: flex; justify-content: flex-end; border-right: 1px solid var(--cds-chart-axis); height: 14px; }
+  .mk-div-pos { display: flex; justify-content: flex-start; height: 14px; }
+  .mk-div-bar { height: 100%; border-radius: 3px; min-width: 1px; }
+  .mk-div-val { text-align: right; font-variant-numeric: tabular-nums; }
+  .mk-tip { position: absolute; z-index: 5; background: var(--cds-surface-popover); border: 1px solid var(--cds-border); border-radius: var(--cds-radius); box-shadow: var(--cds-shadow-popover); padding: var(--cds-pad-xs) var(--cds-pad-sm); font-size: var(--cds-font-size-caption); pointer-events: none; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .mk-tip-head { color: var(--cds-text-secondary); }
+  .mk-table-wrap { max-height: 30rem; overflow: auto; }
+  .mk-table { width: 100%; border-collapse: collapse; font-size: var(--cds-font-size-caption); font-variant-numeric: tabular-nums; }
+  .mk-table th { position: sticky; top: 0; background: var(--color-panel); text-align: right; font-weight: var(--cds-font-weight-medium); color: var(--color-fg-muted); border-bottom: 1px solid var(--color-border-line); padding: var(--cds-pad-xs) var(--cds-pad-sm); white-space: nowrap; }
+  .mk-table th:first-child, .mk-table td:first-child, .mk-table .mk-l { text-align: left; }
+  .mk-table td { padding: var(--cds-pad-xs) var(--cds-pad-sm); text-align: right; border-bottom: 1px solid var(--cds-chart-grid); white-space: nowrap; }
+  .mk-table td.mk-name { white-space: normal; color: var(--color-fg-muted); min-width: 8rem; }
+  .mk-table tr:last-child td { border-bottom: 0; }
+  .mk-own { display: inline-block; font-size: 10px; line-height: 1; padding: 2px 5px; margin-left: 5px; border-radius: 999px; border: 1px solid var(--cds-border); color: var(--color-fg-muted); vertical-align: middle; }
+  .mk-chips { display: flex; flex-wrap: wrap; gap: var(--cds-gap-xs); margin-bottom: var(--cds-gap-md); }
+  .mk-chip { font: inherit; font-size: var(--cds-font-size-caption); padding: 3px 10px; border-radius: 999px; border: 1px solid var(--color-border-line); background: transparent; color: var(--color-fg-muted); cursor: pointer; }
+  .mk-chip[aria-pressed="true"] { background: var(--color-fg); color: var(--color-bg); border-color: var(--color-fg); }
+  .mk-news { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr)); gap: var(--cds-gap-md); }
+  .mk-story { border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-md); display: flex; flex-direction: column; gap: var(--cds-gap-xs); background: var(--color-bg); }
+  .mk-story-meta { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); display: flex; gap: var(--cds-gap-sm); align-items: center; }
+  .mk-tag { font-size: 10px; text-transform: uppercase; letter-spacing: .04em; padding: 2px 6px; border-radius: 4px; color: var(--color-bg); }
+  .mk-story h3 { font-size: var(--cds-font-size-body); font-weight: var(--cds-font-weight-medium); margin: 0; line-height: 1.35; }
+  .mk-story h3 a { color: inherit; text-decoration: none; }
+  .mk-story h3 a:hover { text-decoration: underline; }
+  .mk-story p { margin: 0; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); line-height: 1.45; }
+  .mk-story-rel { font-size: var(--cds-font-size-caption); color: var(--color-fg); }
+  .mk-news-empty { min-height: 10rem; }
+  .mk details { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+  .mk details summary { cursor: pointer; }
+  .mk details dl { display: grid; grid-template-columns: max-content 1fr; gap: var(--cds-gap-xs) var(--cds-gap-md); margin: var(--cds-gap-sm) 0 0; }
+  .mk details dt { color: var(--color-fg); }
+  .mk details dd { margin: 0; }
+  [data-dash-source-state=empty] { color: transparent; }
+  [data-dash-source-state=refreshing] { opacity: .5; transition: opacity var(--cds-dur-slow); }
+  @media (max-width: 40rem) { .mk-hide-narrow { display: none; } }
+</style>
+
+<div class="mk">
+  <header id="overview">
+    <h1>Market trends</h1>
+    <p class="mk-take">The S&amp;P 500 (SPY) is <b data-draw="t_spy" data-source="summary" data-field="spy_pct" data-row="0">—</b> since the last close, and the VIX fear gauge sits at <b data-draw="t_vix" data-source="summary" data-field="vix" data-row="0">—</b>. <b data-draw="t_earn" data-source="summary" data-field="my_earnings" data-row="0">—</b> of your holdings report earnings in the next two weeks, and <b data-draw="t_pull" data-source="summary" data-field="my_pullbacks" data-row="0">—</b> of them show up in this week's sold-off list.</p>
+  </header>
+
+  <section class="mk-kpis" aria-label="Market gauges">
+    <div class="mk-kpi">
+      <p class="mk-kpi-label">S&amp;P 500 · SPY</p>
+      <p class="mk-kpi-val" data-draw="k_spy" data-source="bench" data-field="change_pct" data-where="symbol=SPY" data-fetchpriority="high">—</p>
+      <p class="mk-kpi-sub" data-draw="k_spy_px" data-source="bench" data-field="price" data-where="symbol=SPY">—</p>
+    </div>
+    <div class="mk-kpi">
+      <p class="mk-kpi-label">Nasdaq-100 · QQQ</p>
+      <p class="mk-kpi-val" data-draw="k_qqq" data-source="bench" data-field="change_pct" data-where="symbol=QQQ">—</p>
+      <p class="mk-kpi-sub" data-draw="k_qqq_px" data-source="bench" data-field="price" data-where="symbol=QQQ">—</p>
+    </div>
+    <div class="mk-kpi">
+      <p class="mk-kpi-label">Dow · DIA</p>
+      <p class="mk-kpi-val" data-draw="k_dia" data-source="bench" data-field="change_pct" data-where="symbol=DIA">—</p>
+      <p class="mk-kpi-sub" data-draw="k_dia_px" data-source="bench" data-field="price" data-where="symbol=DIA">—</p>
+    </div>
+    <div class="mk-kpi">
+      <p class="mk-kpi-label">Small caps · IWM</p>
+      <p class="mk-kpi-val" data-draw="k_iwm" data-source="bench" data-field="change_pct" data-where="symbol=IWM">—</p>
+      <p class="mk-kpi-sub" data-draw="k_iwm_px" data-source="bench" data-field="price" data-where="symbol=IWM">—</p>
+    </div>
+    <div class="mk-kpi">
+      <p class="mk-kpi-label">VIX</p>
+      <p class="mk-kpi-val" data-draw="k_vix" data-source="indexes" data-field="value" data-where="symbol=VIX">—</p>
+      <p class="mk-kpi-sub">Above 20 means a nervous market</p>
+    </div>
+    <div class="mk-kpi">
+      <p class="mk-kpi-label">Long bonds · TLT</p>
+      <p class="mk-kpi-val" data-draw="k_tlt" data-source="bench" data-field="change_pct" data-where="symbol=TLT">—</p>
+      <p class="mk-kpi-sub">Falls when rates rise</p>
+    </div>
+  </section>
+
+  <section class="mk-card" id="news">
+    <h2>What's happening</h2>
+    <p class="mk-note">This week's headlines in politics, world affairs, markets, tech and society, with the holdings each one touches. Gathered by Claude from news sites; as of <span data-draw="news_asof" data-source="news" data-field="date">—</span>.</p>
+    <div class="mk-chips" role="group" aria-label="Filter news">
+      <button type="button" class="mk-chip" data-cat="All" aria-pressed="true">All</button>
+      <button type="button" class="mk-chip" data-cat="Politics" aria-pressed="false">Politics</button>
+      <button type="button" class="mk-chip" data-cat="World" aria-pressed="false">World</button>
+      <button type="button" class="mk-chip" data-cat="Markets" aria-pressed="false">Markets</button>
+      <button type="button" class="mk-chip" data-cat="Tech" aria-pressed="false">Tech</button>
+      <button type="button" class="mk-chip" data-cat="Society" aria-pressed="false">Society</button>
+      <button type="button" class="mk-chip" data-cat="Mine" aria-pressed="false">Touches my holdings</button>
+    </div>
+    <div class="mk-news mk-news-empty" data-draw="news_list" data-source="news_view"></div>
+  </section>
+
+  <div class="mk-grid">
+    <section class="mk-card" id="sectors">
+      <h2>Sector moves</h2>
+      <p class="mk-note">Change since the last close for the S&amp;P sector funds, plus chips, gold, oil and long bonds.</p>
+      <div class="mk-chart" data-draw="sector_chart" data-source="bench"></div>
+    </section>
+    <section class="mk-card" id="movers">
+      <h2>Daily movers</h2>
+      <p class="mk-note">Robinhood's list of today's biggest movers, at the latest price.</p>
+      <div class="mk-table-wrap">
+        <table class="mk-table" data-source="movers_view" data-row-key="symbol">
+          <thead><tr>
+            <th data-field="symbol">Symbol</th>
+            <th data-field="price">Price</th>
+            <th data-field="change_pct">Since close</th>
+          </tr></thead>
+          <tbody data-draw="mover_rows"></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <section class="mk-card" id="trending">
+    <h2>Trending on Robinhood, with the analyst view</h2>
+    <p class="mk-note">The 20 stocks Robinhood users are watching most, with Wall Street's buy/hold/sell split and how far the average price target sits from today's price.</p>
+    <div class="mk-table-wrap">
+      <table class="mk-table" data-source="trending_view" data-row-key="symbol">
+        <thead><tr>
+          <th data-field="symbol">Symbol</th>
+          <th data-field="price">Price</th>
+          <th data-field="change_pct">Since close</th>
+          <th data-field="buy_share">Analysts at Buy</th>
+          <th data-field="analysts" class="mk-hide-narrow">Analysts</th>
+          <th data-field="target" class="mk-hide-narrow">Avg target</th>
+          <th data-field="upside">To target</th>
+        </tr></thead>
+        <tbody data-draw="trend_rows"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="mk-card" id="pullbacks">
+    <h2>Big, profitable companies that have sold off</h2>
+    <p class="mk-note">A live Robinhood screen: stocks over $50B in market value with net margins above 15% and a 14-day RSI below 40, meaning they have fallen hard recently. A starting list to research, not a recommendation.</p>
+    <div class="mk-table-wrap">
+      <table class="mk-table" data-source="pullback_view" data-row-key="symbol">
+        <thead><tr>
+          <th data-field="symbol">Symbol</th>
+          <th data-field="name" class="mk-l mk-hide-narrow">Company</th>
+          <th data-field="price">Price</th>
+          <th data-field="rsi">RSI</th>
+          <th data-field="fwd_pe">Fwd P/E</th>
+          <th data-field="margin" class="mk-hide-narrow">Net margin</th>
+          <th data-field="mkt_cap">Market value</th>
+        </tr></thead>
+        <tbody data-draw="pull_rows"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="mk-card" id="earnings">
+    <h2>Your holdings reporting earnings soon</h2>
+    <p class="mk-note">Companies you own (Robinhood or Fidelity) with a report in the next 14 days, from Robinhood's calendar of larger companies.</p>
+    <div class="mk-table-wrap">
+      <table class="mk-table" data-source="my_earnings" data-row-key="symbol">
+        <thead><tr>
+          <th data-field="symbol">Symbol</th>
+          <th data-field="date">Date</th>
+          <th data-field="timing">When</th>
+          <th data-field="eps_estimate">EPS estimate</th>
+        </tr></thead>
+        <tbody data-draw="earn_rows"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <details>
+    <summary>How to read this page</summary>
+    <dl>
+      <dt>Since close</dt><dd>Latest trade, including pre-market, after-hours and overnight sessions, against the previous regular-session close. On weekends this is the overnight move.</dd>
+      <dt>RSI</dt><dd>Relative strength index over 14 days, from 0 to 100. Below 30 is often called oversold; below 40 means the stock has been falling more than rising lately.</dd>
+      <dt>To target</dt><dd>How far the analysts' average 12-month price target is from today's price. Targets are opinions and often lag big moves.</dd>
+      <dt>News</dt><dd>Summaries Claude wrote from the linked sources. They don't update by themselves; ask Claude to refresh them.</dd>
+      <dt>Not advice</dt><dd>Everything here is information to research further, not a recommendation to buy or sell.</dd>
+    </dl>
+  </details>
+</div>
+
+<script>
+  const pct = (v, d = 2) => (v == null || Number.isNaN(v)) ? '—' : (v > 0 ? '+' : v < 0 ? '−' : '') + Math.abs(v * 100).toFixed(d) + '%';
+  const plainPct = (v, d = 0) => (v == null || Number.isNaN(v)) ? '—' : (v * 100).toFixed(d) + '%';
+  const money = (v, d = 2) => (v == null || Number.isNaN(v)) ? '—' : '$' + v.toLocaleString('en-US', {minimumFractionDigits: d, maximumFractionDigits: d});
+  const bigMoney = (v) => (v == null || Number.isNaN(v)) ? '—' : '$' + (v >= 1e12 ? (v / 1e12).toFixed(2) + 'T' : v >= 1e9 ? (v / 1e9).toFixed(0) + 'B' : (v / 1e6).toFixed(0) + 'M');
+  const rowsOf = (id) => { const g = dash.data(id); return g.status === 'ok' ? g.data : null; };
+  const tone = (el, v) => { el.classList.toggle('mk-up', v > 0); el.classList.toggle('mk-down', v < 0); };
+  const cell = (tr, text, cls) => { const td = document.createElement('td'); td.textContent = text; if (cls) td.className = cls; tr.append(td); return td; };
+  const own = (td) => { const s = document.createElement('span'); s.className = 'mk-own'; s.textContent = 'you own'; td.append(s); };
+  window.mk = {pct, plainPct, money, bigMoney, rowsOf, tone, cell, own};
+</script>
+
+<script>
+  const J = (a) => (typeof a === 'string' ? JSON.parse(a) : a);
+  const need = (obj, what) => { if (!obj || !obj.data) throw new Error('Robinhood returned no ' + what + ': ' + JSON.stringify(obj).slice(0, 200)); return obj.data; };
+  const quoteRows = (results) => results.filter((r) => r.quote).map((r) => {
+    const q = r.quote;
+    const ext = q.last_non_reg_trade_price == null ? null : Number(q.last_non_reg_trade_price);
+    const useExt = ext != null && (q.venue_last_non_reg_trade_time || '') > (q.venue_last_trade_time || '');
+    return {symbol: q.symbol, price: useExt ? ext : Number(q.last_trade_price), previous_close: Number(q.adjusted_previous_close), state: q.state};
+  });
+  window.mkQuoteRows = quoteRows;
+
+  dash.loader('benchmarks', {
+    description: 'Latest price and previous close per fund',
+    fn: ({answer}) => quoteRows(need(J(answer), 'quotes').results),
+  });
+
+  dash.loader('indexes', {
+    description: 'Index levels from get_index_quotes',
+    fn: ({answer}) => need(J(answer), 'index quotes').quotes.map((q) => ({symbol: q.symbol, value: Number(q.value), at: q.venue_timestamp})),
+  });
+
+  const listWithQuotes = async (answer, call) => {
+    const syms = need(J(answer), 'watchlist').items.filter((i) => i.object_type === 'instrument').map((i) => i.symbol);
+    if (!syms.length) return {syms, quotes: []};
+    const q = need(J(await call('get_equity_quotes', {symbols: syms}, {poll: false})), 'quotes');
+    return {syms, quotes: quoteRows(q.results)};
+  };
+
+  dash.loader('movers', {
+    description: 'Robinhood Daily movers list, priced with get_equity_quotes',
+    fn: async ({answer, call}) => (await listWithQuotes(answer, call)).quotes,
+  });
+
+  dash.loader('trending', {
+    description: 'Robinhood Trending stocks list, priced and joined to analyst ratings',
+    fn: async ({answer, call}) => {
+      const {syms, quotes} = await listWithQuotes(answer, call);
+      if (!syms.length) return [];
+      const r = need(J(await call('get_equity_analyst_ratings', {symbols: syms}, {poll: false})), 'analyst ratings').results;
+      const rt = Object.fromEntries(r.map((x) => [x.symbol, x.ratings]));
+      return quotes.map((q) => {
+        const g = rt[q.symbol];
+        return {...q, buy: g ? g.num_buy_ratings : null, hold: g ? g.num_hold_ratings : null, sell: g ? g.num_sell_ratings : null,
+          mean_target: g && g.mean_price_target != null ? Number(g.mean_price_target) : null};
+      });
+    },
+  });
+
+  dash.loader('pullbacks', {
+    description: 'Rows of the live screen with each column as a number',
+    fn: ({answer}) => need(J(answer), 'screen').result.results.map((r) => ({
+      symbol: r.ticker, name: r.columns.Name, price: Number(r.columns.Last), rsi: Number(r.columns.RSI),
+      fwd_pe: r.columns['Forward P/E'] === '' ? null : Number(r.columns['Forward P/E']),
+      margin: Number(r.columns['Net profit margin']), mkt_cap: Number(r.columns['Market cap']), change: Number(r.columns['% Change']),
+    })),
+  });
+
+  dash.loader('earnings', {
+    description: 'One row per scheduled report',
+    fn: ({answer}) => need(J(answer), 'earnings').results.map((e) => ({
+      symbol: e.symbol, date: e.report && e.report.date, timing: e.report && e.report.timing,
+      eps_estimate: e.eps && e.eps.estimate != null ? Number(e.eps.estimate) : null, year: e.year, quarter: e.quarter,
+    })),
+  });
+
+  dash.loader('positions', {
+    description: 'Symbols held in each Robinhood account, from get_equity_positions',
+    fn: async ({answer, call}) => {
+      const accts = need(J(answer), 'accounts').accounts.filter((a) => !a.deactivated);
+      const rows = [];
+      for (const a of accts) {
+        let cursor = null, pages = 0;
+        do {
+          const args = cursor ? {account_number: a.account_number, cursor} : {account_number: a.account_number};
+          const d = need(J(await call('get_equity_positions', args, {poll: false})), 'positions');
+          for (const p of d.positions || []) rows.push({account_number: a.account_number, symbol: p.symbol, quantity: Number(p.quantity)});
+          cursor = d.next || null; pages += 1;
+        } while (cursor && pages < 5);
+      }
+      return rows;
+    },
+  });
+</script>
+
+<script>
+  dash.calc('held', {
+    title: 'Symbols you hold',
+    description: 'Every symbol held at Robinhood or Fidelity.',
+    inputs: ['positions', 'fidelity'],
+    fn: (positions, fidelity) => [...new Set(positions.concat(fidelity).filter((p) => Number(p.quantity) > 0).map((p) => p.symbol))].sort().map((symbol) => ({symbol})),
+  });
+
+  dash.calc('bench', {
+    title: 'Funds and sectors',
+    description: 'Each fund named, with its change since the previous close.',
+    inputs: ['benchmarks'],
+    fn: (benchmarks) => {
+      const NAMES = {SPY: 'S&P 500', QQQ: 'Nasdaq-100', DIA: 'Dow', IWM: 'Small caps', XLK: 'Technology', XLC: 'Communication', XLY: 'Consumer discretionary',
+        XLF: 'Financials', XLV: 'Health care', XLI: 'Industrials', XLE: 'Energy', XLP: 'Consumer staples', XLU: 'Utilities', XLB: 'Materials',
+        XLRE: 'Real estate', SMH: 'Semiconductors', GLD: 'Gold', TLT: 'Long Treasuries', USO: 'Oil'};
+      const BROAD = ['SPY', 'QQQ', 'DIA', 'IWM'];
+      return benchmarks.map((b) => ({symbol: b.symbol, name: NAMES[b.symbol] || b.symbol, group: BROAD.includes(b.symbol) ? 'broad' : 'sector',
+        price: b.price, change_pct: b.previous_close ? b.price / b.previous_close - 1 : null}));
+    },
+  });
+
+  dash.calc('movers_view', {
+    title: 'Daily movers',
+    description: 'Movers with their change since the previous close, biggest first.',
+    inputs: ['movers', 'held'],
+    fn: (movers, held) => {
+      const mine = new Set(held.map((h) => h.symbol));
+      return movers.map((m) => ({symbol: m.symbol, price: m.price, change_pct: m.previous_close ? m.price / m.previous_close - 1 : null, owned: mine.has(m.symbol)}))
+        .sort((a, b) => Math.abs(b.change_pct || 0) - Math.abs(a.change_pct || 0));
+    },
+  });
+
+  dash.calc('trending_view', {
+    title: 'Trending with analyst view',
+    description: 'Trending stocks with share of analysts at Buy and distance to the average target.',
+    inputs: ['trending', 'held'],
+    fn: (trending, held) => {
+      const mine = new Set(held.map((h) => h.symbol));
+      return trending.map((t) => {
+        const n = t.buy == null ? null : t.buy + t.hold + t.sell;
+        return {symbol: t.symbol, price: t.price, change_pct: t.previous_close ? t.price / t.previous_close - 1 : null,
+          analysts: n, buy_share: n ? t.buy / n : null, target: t.mean_target, upside: t.mean_target && t.price ? t.mean_target / t.price - 1 : null,
+          owned: mine.has(t.symbol)};
+      }).sort((a, b) => (b.upside ?? -9) - (a.upside ?? -9));
+    },
+  });
+
+  dash.calc('pullback_view', {
+    title: 'Sold-off large caps',
+    description: 'The screen’s results, most oversold first, marked where you already own them.',
+    inputs: ['pullbacks', 'held'],
+    fn: (pullbacks, held) => {
+      const mine = new Set(held.map((h) => h.symbol));
+      return pullbacks.map((p) => ({...p, owned: mine.has(p.symbol)})).sort((a, b) => a.rsi - b.rsi);
+    },
+  });
+
+  dash.calc('my_earnings', {
+    title: 'Your upcoming earnings',
+    description: 'Scheduled reports for symbols you hold.',
+    inputs: ['earnings', 'held'],
+    fn: (earnings, held) => {
+      const mine = new Set(held.map((h) => h.symbol));
+      const seen = new Set();
+      return earnings.filter((e) => mine.has(e.symbol) && !seen.has(e.symbol) && seen.add(e.symbol))
+        .sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+    },
+  });
+
+  dash.calc('news_view', {
+    title: 'Headlines',
+    description: 'News items, newest first, with the holdings each one touches that you actually own.',
+    inputs: ['news', 'held'],
+    fn: (news, held) => {
+      const mine = new Set(held.map((h) => h.symbol));
+      return news.map((n) => {
+        const rel = (n.related || '').split(',').map((s) => s.trim()).filter((s) => mine.has(s));
+        return {...n, mine: rel.join(', ')};
+      }).sort((a, b) => b.date.localeCompare(a.date));
+    },
+  });
+
+  dash.calc('summary', {
+    title: 'Headline summary',
+    description: 'S&P 500 move, VIX level and counts that touch your holdings.',
+    inputs: ['bench', 'indexes', 'my_earnings', 'pullback_view'],
+    fn: (bench, indexes, my_earnings, pullback_view) => {
+      const spy = bench.find((b) => b.symbol === 'SPY');
+      const vix = indexes.find((i) => i.symbol === 'VIX');
+      return [{spy_pct: spy ? spy.change_pct : null, vix: vix ? vix.value : null,
+        my_earnings: my_earnings.length, my_pullbacks: pullback_view.filter((p) => p.owned).length}];
+    },
+  });
+</script>
+
+<script>
+  const one = (name, id, where, field, fmt, toned) => dash.draw(name, (el) => {
+    const rows = mk.rowsOf(id);
+    const r = rows && rows.find((x) => x.symbol === where);
+    const v = r ? r[field] : null;
+    el.textContent = v == null ? '—' : fmt(v);
+    el.classList.toggle('dash-skeleton', !rows && dash.data(id).status !== 'error');
+    if (toned) mk.tone(el, v || 0);
+  });
+  one('k_spy', 'bench', 'SPY', 'change_pct', (v) => mk.pct(v), true);
+  one('k_qqq', 'bench', 'QQQ', 'change_pct', (v) => mk.pct(v), true);
+  one('k_dia', 'bench', 'DIA', 'change_pct', (v) => mk.pct(v), true);
+  one('k_iwm', 'bench', 'IWM', 'change_pct', (v) => mk.pct(v), true);
+  one('k_tlt', 'bench', 'TLT', 'change_pct', (v) => mk.pct(v), true);
+  one('k_spy_px', 'bench', 'SPY', 'price', (v) => mk.money(v));
+  one('k_qqq_px', 'bench', 'QQQ', 'price', (v) => mk.money(v));
+  one('k_dia_px', 'bench', 'DIA', 'price', (v) => mk.money(v));
+  one('k_iwm_px', 'bench', 'IWM', 'price', (v) => mk.money(v));
+  dash.draw('k_vix', (el) => {
+    const rows = mk.rowsOf('indexes');
+    const r = rows && rows.find((x) => x.symbol === 'VIX');
+    el.textContent = r ? r.value.toFixed(2) : '—';
+    el.classList.toggle('dash-skeleton', !rows && dash.data('indexes').status !== 'error');
+    el.classList.toggle('mk-down', !!(r && r.value >= 20));
+  });
+  const sum = (name, field, fmt, toned) => dash.draw(name, (el) => {
+    const rows = mk.rowsOf('summary');
+    const v = rows && rows[0] ? rows[0][field] : null;
+    el.textContent = v == null ? '—' : fmt(v);
+    if (toned) mk.tone(el, v || 0);
+  });
+  sum('t_spy', 'spy_pct', (v) => (v >= 0 ? 'up ' : 'down ') + mk.pct(Math.abs(v)).replace('+', ''), true);
+  sum('t_vix', 'vix', (v) => v.toFixed(1));
+  sum('t_earn', 'my_earnings', (v) => String(v));
+  sum('t_pull', 'my_pullbacks', (v) => String(v));
+  dash.draw('news_asof', (el) => {
+    const rows = mk.rowsOf('news');
+    el.textContent = rows && rows.length ? rows.map((r) => r.date).sort().slice(-1)[0] : '—';
+  });
+</script>
+
+<script>
+  // Sector moves: diverging bars around zero.
+  dash.draw('sector_chart', (el) => {
+    el.replaceChildren();
+    const rows = mk.rowsOf('bench');
+    el.classList.toggle('dash-skeleton', !rows && dash.data('bench').status !== 'error');
+    if (!rows) { if (dash.data('bench').status === 'error') el.textContent = 'Failed to load'; return; }
+    const list = rows.filter((r) => r.group === 'sector' && r.change_pct != null).sort((a, b) => b.change_pct - a.change_pct);
+    const max = d3.max(list, (r) => Math.abs(r.change_pct)) || 0.01;
+    const box = document.createElement('div'); box.className = 'mk-div';
+    const tip = document.createElement('div'); tip.className = 'mk-tip'; tip.hidden = true;
+    for (const r of list) {
+      const row = document.createElement('div'); row.className = 'mk-div-row';
+      const lab = document.createElement('span'); lab.className = 'mk-div-label'; lab.textContent = r.name;
+      const neg = document.createElement('span'); neg.className = 'mk-div-neg';
+      const pos = document.createElement('span'); pos.className = 'mk-div-pos';
+      const bar = document.createElement('span'); bar.className = 'mk-div-bar';
+      bar.style.width = (Math.abs(r.change_pct) / max * 100) + '%';
+      bar.style.background = r.change_pct >= 0 ? dash.colors[0] : 'var(--cds-chart-status-critical)';
+      (r.change_pct >= 0 ? pos : neg).append(bar);
+      const val = document.createElement('span'); val.className = 'mk-div-val'; val.textContent = mk.pct(r.change_pct);
+      mk.tone(val, r.change_pct);
+      row.append(lab, neg, pos, val);
+      row.addEventListener('mousemove', (e) => {
+        tip.replaceChildren();
+        const h = document.createElement('div'); h.className = 'mk-tip-head'; h.textContent = r.name + ' · ' + r.symbol;
+        const l = document.createElement('div'); l.textContent = mk.money(r.price) + ' · ' + mk.pct(r.change_pct) + ' since close';
+        tip.append(h, l); tip.hidden = false;
+        const b = el.getBoundingClientRect();
+        tip.style.left = Math.max(0, Math.min(e.clientX - b.left + 12, b.width - tip.offsetWidth - 4)) + 'px';
+        tip.style.top = Math.max(0, Math.min(e.clientY - b.top + 12, b.height - tip.offsetHeight)) + 'px';
+      });
+      row.addEventListener('mouseleave', () => { tip.hidden = true; });
+      box.append(row);
+    }
+    el.append(box, tip);
+  });
+</script>
+
+<script>
+  // News tiles with category chips.
+  const newsState = {cat: 'All'};
+  for (const b of document.querySelectorAll('.mk-chip')) {
+    b.addEventListener('click', () => {
+      newsState.cat = b.dataset.cat;
+      for (const o of document.querySelectorAll('.mk-chip')) o.setAttribute('aria-pressed', String(o === b));
+      dash.draw('news_list');
+    });
+  }
+  dash.draw('news_list', (el) => {
+    el.replaceChildren();
+    const rows = mk.rowsOf('news_view');
+    el.classList.toggle('dash-skeleton', !rows && dash.data('news_view').status !== 'error');
+    if (!rows) return;
+    const CAT = ['Politics', 'World', 'Markets', 'Tech', 'Society'];
+    const list = rows.filter((n) => newsState.cat === 'All' || (newsState.cat === 'Mine' ? n.mine : n.category === newsState.cat));
+    for (const n of list) {
+      const card = document.createElement('article'); card.className = 'mk-story';
+      const meta = document.createElement('div'); meta.className = 'mk-story-meta';
+      const tag = document.createElement('span'); tag.className = 'mk-tag'; tag.textContent = n.category;
+      tag.style.background = dash.colors[Math.max(0, CAT.indexOf(n.category)) % dash.colors.length];
+      const when = document.createElement('span'); when.textContent = n.date + ' · ' + n.source;
+      meta.append(tag, when);
+      const h = document.createElement('h3');
+      const a = document.createElement('a'); a.href = n.url; a.target = '_blank'; a.rel = 'noopener noreferrer'; a.textContent = n.headline;
+      h.append(a);
+      const p = document.createElement('p'); p.textContent = n.summary;
+      card.append(meta, h, p);
+      if (n.mine) { const r = document.createElement('div'); r.className = 'mk-story-rel'; r.textContent = 'Touches your holdings: ' + n.mine; card.append(r); }
+      el.append(card);
+    }
+    if (!list.length) { const p = document.createElement('p'); p.className = 'mk-note'; p.textContent = 'No headlines in this group.'; el.append(p); }
+  });
+</script>
+
+<script>
+  // Tables.
+  dash.draw('mover_rows', (tb) => {
+    tb.replaceChildren();
+    const rows = mk.rowsOf('movers_view');
+    if (!rows) return;
+    for (const r of rows) {
+      const tr = document.createElement('tr'); tr.dataset.key = r.symbol;
+      const td = mk.cell(tr, r.symbol); if (r.owned) mk.own(td);
+      mk.cell(tr, mk.money(r.price));
+      mk.cell(tr, mk.pct(r.change_pct), r.change_pct > 0 ? 'mk-up' : r.change_pct < 0 ? 'mk-down' : '');
+      tb.append(tr);
+    }
+  });
+  dash.draw('trend_rows', (tb) => {
+    tb.replaceChildren();
+    const rows = mk.rowsOf('trending_view');
+    if (!rows) return;
+    for (const r of rows) {
+      const tr = document.createElement('tr'); tr.dataset.key = r.symbol;
+      const td = mk.cell(tr, r.symbol); if (r.owned) mk.own(td);
+      mk.cell(tr, mk.money(r.price));
+      mk.cell(tr, mk.pct(r.change_pct), r.change_pct > 0 ? 'mk-up' : r.change_pct < 0 ? 'mk-down' : '');
+      mk.cell(tr, r.buy_share == null ? 'No coverage' : mk.plainPct(r.buy_share));
+      mk.cell(tr, r.analysts == null ? '' : String(r.analysts), 'mk-hide-narrow');
+      mk.cell(tr, r.target == null ? '' : mk.money(r.target), 'mk-hide-narrow');
+      mk.cell(tr, r.upside == null ? '' : mk.pct(r.upside, 0), r.upside > 0 ? 'mk-up' : r.upside < 0 ? 'mk-down' : '');
+      tb.append(tr);
+    }
+  });
+  dash.draw('pull_rows', (tb) => {
+    tb.replaceChildren();
+    const rows = mk.rowsOf('pullback_view');
+    if (!rows) return;
+    for (const r of rows) {
+      const tr = document.createElement('tr'); tr.dataset.key = r.symbol;
+      const td = mk.cell(tr, r.symbol); if (r.owned) mk.own(td);
+      mk.cell(tr, r.name, 'mk-name mk-l mk-hide-narrow');
+      mk.cell(tr, mk.money(r.price));
+      mk.cell(tr, r.rsi.toFixed(0), r.rsi < 30 ? 'mk-down' : '');
+      mk.cell(tr, r.fwd_pe == null ? '' : r.fwd_pe.toFixed(1));
+      mk.cell(tr, mk.plainPct(r.margin), 'mk-hide-narrow');
+      mk.cell(tr, mk.bigMoney(r.mkt_cap));
+      tb.append(tr);
+    }
+  });
+  dash.draw('earn_rows', (tb) => {
+    tb.replaceChildren();
+    const rows = mk.rowsOf('my_earnings');
+    if (!rows) return;
+    for (const r of rows) {
+      const tr = document.createElement('tr'); tr.dataset.key = r.symbol;
+      mk.cell(tr, r.symbol);
+      mk.cell(tr, r.date || '');
+      mk.cell(tr, r.timing === 'am' ? 'Before open' : r.timing === 'pm' ? 'After close' : '');
+      mk.cell(tr, r.eps_estimate == null ? '' : '$' + r.eps_estimate.toFixed(2));
+      tb.append(tr);
+    }
+  });
+</script>

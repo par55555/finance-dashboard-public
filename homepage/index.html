@@ -1,0 +1,783 @@
+<meta name="dash-one-writer">
+<style>
+  .pf { font-family: var(--font-anthropic-sans); color: var(--color-fg); display: flex; flex-direction: column; gap: var(--cds-gap-xl); }
+  .pf b { font-weight: var(--cds-font-weight-medium); }
+  .pf-head h1 { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); margin: 0 0 var(--cds-gap-xs); }
+  .pf-take { margin: 0; color: var(--color-fg-muted); font-size: var(--cds-font-size-body); max-width: 60rem; line-height: 1.5; }
+  .pf-take b { color: var(--color-fg); }
+  .pf-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr)); gap: var(--cds-gap-md); }
+  .pf-kpi { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-md) var(--cds-pad-lg); }
+  .pf-kpi-label { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); margin: 0; }
+  .pf-kpi-val { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); margin: var(--cds-gap-xs) 0; font-variant-numeric: tabular-nums; min-height: 1.3em; }
+  .pf-kpi-sub { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); margin: 0; font-variant-numeric: tabular-nums; }
+  .pf-up { color: var(--color-ok); }
+  .pf-down { color: var(--color-bad); }
+  .pf-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); gap: var(--cds-gap-md); }
+  .pf-card { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-lg); min-width: 0; }
+  .pf-card h2 { font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); margin: 0; }
+  .pf-note { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); margin: var(--cds-gap-xs) 0 var(--cds-gap-md); }
+  .pf-chart { position: relative; min-height: 14rem; }
+  .pf-bars { display: flex; flex-direction: column; gap: var(--cds-gap-xs); }
+  .pf-bar-row { display: grid; grid-template-columns: minmax(5rem, 9rem) 1fr auto; align-items: center; gap: var(--cds-gap-sm); font-size: var(--cds-font-size-caption); cursor: default; padding: 2px 0; }
+  .pf-bar-row:hover .pf-bar-fill { opacity: .8; }
+  .pf-bar-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pf-bar-track { height: 14px; position: relative; }
+  .pf-bar-fill { display: block; height: 100%; border-radius: 3px; min-width: 2px; }
+  .pf-bar-val { font-variant-numeric: tabular-nums; color: var(--color-fg-muted); text-align: right; white-space: nowrap; }
+  .pf-tip { position: absolute; z-index: 5; background: var(--cds-surface-popover); border: 1px solid var(--cds-border); border-radius: var(--cds-radius); box-shadow: var(--cds-shadow-popover); padding: var(--cds-pad-xs) var(--cds-pad-sm); font-size: var(--cds-font-size-caption); pointer-events: none; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .pf-tip-head { color: var(--cds-text-secondary); }
+  .pf-table-wrap { max-height: 34rem; overflow: auto; }
+  .pf-table { width: 100%; border-collapse: collapse; font-size: var(--cds-font-size-caption); font-variant-numeric: tabular-nums; }
+  .pf-table th { position: sticky; top: 0; background: var(--color-panel); text-align: right; font-weight: var(--cds-font-weight-medium); color: var(--color-fg-muted); border-bottom: 1px solid var(--color-border-line); padding: var(--cds-pad-xs) var(--cds-pad-sm); white-space: nowrap; }
+  .pf-table th:first-child, .pf-table td:first-child, .pf-table .pf-l { text-align: left; }
+  .pf-table th button { all: unset; cursor: pointer; }
+  .pf-table th button:focus-visible { outline: 2px solid var(--cds-chart-reference); }
+  .pf-table td { padding: var(--cds-pad-xs) var(--cds-pad-sm); text-align: right; border-bottom: 1px solid var(--cds-chart-grid); white-space: nowrap; }
+  .pf-table td.pf-wrap { white-space: normal; color: var(--color-fg-muted); }
+  .pf-table tr:last-child td { border-bottom: 0; }
+  .pf-cellbar { display: inline-block; height: 6px; border-radius: 3px; margin-left: var(--cds-gap-xs); vertical-align: middle; }
+  .pf-search { font: inherit; font-size: var(--cds-font-size-caption); padding: var(--cds-pad-xs) var(--cds-pad-sm); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); background: var(--color-bg); color: var(--color-fg); width: min(100%, 16rem); margin-bottom: var(--cds-gap-sm); }
+  .pf-muted { color: var(--color-fg-muted); }
+  .pf-pending { color: var(--color-warn); }
+  .pf-soon ul { margin: var(--cds-gap-sm) 0 0; padding-left: 1.2rem; font-size: var(--cds-font-size-body); color: var(--color-fg-muted); line-height: 1.6; }
+  .pf details { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+  .pf details summary { cursor: pointer; }
+  .pf details dl { display: grid; grid-template-columns: max-content 1fr; gap: var(--cds-gap-xs) var(--cds-gap-md); margin: var(--cds-gap-sm) 0 0; }
+  .pf details dt { color: var(--color-fg); }
+  .pf details dd { margin: 0; }
+  [data-dash-source-state=empty] { color: transparent; }
+  [data-dash-source-state=refreshing] { opacity: .5; transition: opacity var(--cds-dur-slow); }
+  @media (max-width: 40rem) { .pf-hide-narrow { display: none; } }
+</style>
+
+<div class="pf">
+  <header class="pf-head" id="overview">
+    <h1>Net worth &amp; portfolio</h1>
+    <p class="pf-take">Tracked net worth is <b data-draw="t_nw" data-source="totals" data-field="net_worth" data-row="0">—</b>. Your Robinhood holdings are <b data-draw="t_unreal" data-source="totals" data-field="unrealized" data-row="0">—</b> versus what you paid, and your ten largest positions make up <b data-draw="t_top10" data-source="totals" data-field="top10_share" data-row="0">—</b> of everything you hold.
+      <span class="pf-manual-missing">Your 401(k) isn't added yet, so the real total is higher.</span>
+      <span class="pf-manual-done" hidden>Fidelity and your 401(k) move with live prices; bank savings earn their APY.</span>
+    </p>
+  </header>
+
+  <section class="pf-kpis" aria-label="Headline figures">
+    <div class="pf-kpi pf-kpi-total">
+      <p class="pf-kpi-label">Net worth</p>
+      <p class="pf-kpi-val" data-draw="k_nw" data-source="totals" data-field="net_worth" data-row="0" data-fetchpriority="high">—</p>
+      <p class="pf-kpi-sub">All four institutions, less card balances</p>
+    </div>
+    <div class="pf-kpi">
+      <p class="pf-kpi-label">Robinhood</p>
+      <p class="pf-kpi-val" data-draw="k_rh" data-source="totals" data-field="robinhood_net" data-row="0" data-fetchpriority="high">—</p>
+      <p class="pf-kpi-sub">4 accounts, live, less card balance</p>
+    </div>
+    <div class="pf-kpi">
+      <p class="pf-kpi-label">Fidelity</p>
+      <p class="pf-kpi-val" data-draw="k_fid" data-source="totals" data-field="fidelity_value" data-row="0">—</p>
+      <p class="pf-kpi-sub">Your share counts at live prices</p>
+    </div>
+    <div class="pf-kpi">
+      <p class="pf-kpi-label">Bank savings</p>
+      <p class="pf-kpi-val" data-draw="k_cap" data-source="totals" data-field="bank_savings" data-row="0">—</p>
+      <p class="pf-kpi-sub">High-yield savings with interest</p>
+    </div>
+    <div class="pf-kpi">
+      <p class="pf-kpi-label">401(k)</p>
+      <p class="pf-kpi-val" data-draw="k_401" data-source="totals" data-field="retirement_value" data-row="0">—</p>
+      <p class="pf-kpi-sub">Your balance, moved with listed proxy funds</p>
+    </div>
+    <div class="pf-kpi">
+      <p class="pf-kpi-label">Since last close</p>
+      <p class="pf-kpi-val" data-draw="k_day" data-source="totals" data-field="day_change" data-row="0">—</p>
+      <p class="pf-kpi-sub"><span data-draw="k_day_pct" data-source="totals" data-field="day_pct" data-row="0">—</span> · latest trade, incl. extended hours</p>
+    </div>
+    <div class="pf-kpi">
+      <p class="pf-kpi-label">Unrealized gain</p>
+      <p class="pf-kpi-val" data-draw="k_unreal" data-source="totals" data-field="unrealized" data-row="0">—</p>
+      <p class="pf-kpi-sub"><span data-draw="k_unreal_pct" data-source="totals" data-field="unrealized_pct" data-row="0">—</span> on <span data-draw="k_cost" data-source="totals" data-field="cost_basis" data-row="0">—</span> cost</p>
+    </div>
+  </section>
+
+  <section class="pf-card" id="accounts">
+    <h2>Where your money is</h2>
+    <p class="pf-note">Every account by institution. Robinhood is live; Fidelity and the 401(k) move with live prices; bank savings earn their APY.</p>
+    <div class="pf-table-wrap">
+      <table class="pf-table" data-source="institutions" data-row-key="id">
+        <thead><tr>
+          <th data-field="institution">Institution</th>
+          <th data-field="account" class="pf-l">Account</th>
+          <th data-field="kind" class="pf-l pf-hide-narrow">Type</th>
+          <th data-field="value">Value</th>
+          <th data-field="share" class="pf-hide-narrow">Share of assets</th>
+        </tr></thead>
+        <tbody data-draw="inst_rows"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="pf-card" id="fidelity">
+    <h2>Fidelity holdings</h2>
+    <p class="pf-note">Your share counts at the latest market price, including extended hours. Worth <b data-draw="fid_total" data-source="totals" data-field="fidelity_value" data-row="0">—</b> now, <span data-draw="fid_day" data-source="totals" data-field="fidelity_day" data-row="0">—</span> since the last close.</p>
+    <div class="pf-table-wrap">
+      <table class="pf-table" data-source="fidelity_valued" data-row-key="symbol">
+        <thead><tr>
+          <th data-field="symbol">Symbol</th>
+          <th data-field="qty">Shares</th>
+          <th data-field="price">Price</th>
+          <th data-field="day_pct">Since close</th>
+          <th data-field="day_change" class="pf-hide-narrow">Change $</th>
+          <th data-field="value">Value</th>
+          <th data-field="weight" class="pf-hide-narrow">Share of Fidelity</th>
+        </tr></thead>
+        <tbody data-draw="fid_rows"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <div class="pf-grid">
+    <section class="pf-card" id="allocation">
+      <h2>Allocation by asset type</h2>
+      <p class="pf-note">Across Robinhood and Fidelity, by market value.</p>
+      <div class="pf-chart" data-draw="alloc_chart" data-source="alloc"></div>
+    </section>
+    <section class="pf-card" id="concentration">
+      <h2>Ten largest positions</h2>
+      <p class="pf-note">Combined across accounts; share of all holdings.</p>
+      <div class="pf-chart" data-draw="top_chart" data-source="by_symbol"></div>
+    </section>
+  </div>
+
+  <div class="pf-grid">
+    <section class="pf-card" id="winners">
+      <h2>Biggest unrealized gains</h2>
+      <p class="pf-note">Dollar gain versus average cost.</p>
+      <div class="pf-chart" data-draw="win_chart" data-source="by_symbol"></div>
+    </section>
+    <section class="pf-card" id="losers">
+      <h2>Biggest unrealized losses</h2>
+      <p class="pf-note">Dollar loss versus average cost.</p>
+      <div class="pf-chart" data-draw="lose_chart" data-source="by_symbol"></div>
+    </section>
+  </div>
+
+  <section class="pf-card" id="holdings">
+    <h2>All holdings</h2>
+    <p class="pf-note">Each stock and fund once, combined across Robinhood and Fidelity. Click a column to sort.</p>
+    <input class="pf-search" type="search" placeholder="Filter by symbol, type or account" aria-label="Filter holdings">
+    <div class="pf-table-wrap">
+      <table class="pf-table pf-holdings" data-source="by_symbol" data-row-key="symbol">
+        <thead><tr>
+          <th data-field="symbol" data-sort="symbol"><button type="button">Symbol</button></th>
+          <th data-field="asset_class" data-sort="asset_class" class="pf-l pf-hide-narrow"><button type="button">Type</button></th>
+          <th data-field="accounts" data-sort="accounts" class="pf-l pf-hide-narrow"><button type="button">Accounts</button></th>
+          <th data-field="qty" data-sort="qty" class="pf-hide-narrow"><button type="button">Shares</button></th>
+          <th data-field="avg_cost" data-sort="avg_cost" class="pf-hide-narrow"><button type="button">Avg cost</button></th>
+          <th data-field="price" data-sort="price"><button type="button">Price</button></th>
+          <th data-field="day_pct" data-sort="day_pct"><button type="button">Since close</button></th>
+          <th data-field="value" data-sort="value" aria-sort="descending"><button type="button">Value</button></th>
+          <th data-field="weight" data-sort="weight" class="pf-hide-narrow"><button type="button">Weight</button></th>
+          <th data-field="pl" data-sort="pl"><button type="button">Gain $</button></th>
+          <th data-field="pl_pct" data-sort="pl_pct"><button type="button">Gain %</button></th>
+        </tr></thead>
+        <tbody data-draw="hold_rows"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="pf-card" id="manual">
+    <h2>Bank savings</h2>
+    <p class="pf-note">No live bank connection is available, so balances are the ones you gave. Savings grows at its APY from that date; tell Claude a fresh balance after deposits or withdrawals.</p>
+    <table class="pf-table" data-source="manual_valued" data-row-key="id">
+      <thead><tr>
+        <th data-field="institution">Institution</th>
+        <th data-field="account" class="pf-l">Account</th>
+        <th data-field="balance" class="pf-hide-narrow">Balance given</th>
+        <th data-field="as_of" class="pf-hide-narrow">On</th>
+        <th data-field="apy">APY</th>
+        <th data-field="interest">Interest since</th>
+        <th data-field="value">Estimated today</th>
+      </tr></thead>
+      <tbody data-draw="manual_rows"></tbody>
+    </table>
+  </section>
+
+  <section class="pf-card" id="retirement">
+    <h2>401(k)</h2>
+    <p class="pf-note">Plan funds often have no public ticker, so each moves with a listed fund that tracks the same market (for example, VOO for an S&amp;P 500 trust). Send Claude a fresh balance from your plan now and then to correct for any drift.</p>
+    <table class="pf-table" data-source="retirement_valued" data-row-key="id">
+      <thead><tr>
+        <th data-field="fund">Fund</th>
+        <th data-field="proxy">Tracks</th>
+        <th data-field="balance" class="pf-hide-narrow">Balance given</th>
+        <th data-field="as_of" class="pf-hide-narrow">At close</th>
+        <th data-field="change_pct">Move since</th>
+        <th data-field="value">Estimated today</th>
+      </tr></thead>
+      <tbody data-draw="ret_rows"></tbody>
+    </table>
+  </section>
+
+  <section class="pf-card pf-soon" id="market">
+    <h2>Market trends &amp; opportunities</h2>
+    <p class="pf-note">Now on its own page: <a href="https://claude.ai/artifact/9rpDCqAHB6nNHGgNKfdFUe" target="_blank" rel="noopener noreferrer">Market trends</a>.</p>
+    <ul>
+      <li>Index and sector moves, and the VIX</li>
+      <li>This week's news in politics, world, markets, tech and society, tagged with the holdings each story touches</li>
+      <li>Robinhood's daily movers and trending stocks with the analyst view</li>
+      <li>A live screen of big, profitable companies that have sold off</li>
+      <li>Which of your holdings report earnings in the next two weeks</li>
+    </ul>
+  </section>
+
+  <details>
+    <summary>How these numbers are worked out</summary>
+    <dl>
+      <dt>Net worth</dt><dd>Robinhood account values as Robinhood reports them and Robinhood bank balances, plus your Fidelity shares at live prices, your bank savings with interest, and your 401(k), minus card balances owed.</dd>
+      <dt>401(k)</dt><dd>The balance you gave, split by fund, each moved by its stand-in's price change since then. A stand-in tracks the same index or strategy as the plan fund but only approximates it, so the estimate can drift. Fees inside the plan aren't reflected.</dd>
+      <dt>Price</dt><dd>The most recent trade, including pre-market, after-hours and overnight sessions. Robinhood's own account values use the regular-session price, so holdings can differ slightly from the account totals.</dd>
+      <dt>Since last close</dt><dd>Latest price against the previous regular-session close. On weekends and evenings this is the extended-hours move.</dd>
+      <dt>Unrealized gain</dt><dd>Market value minus shares times Robinhood's average cost. Crypto is included; options are not held. Fidelity shares have no cost on file, so they're left out of gain until you add one.</dd>
+      <dt>Savings interest</dt><dd>The balance you gave, grown at its APY from that date to the time of the latest market quote. Banks usually credit interest monthly, so the bank's figure can trail this estimate by a few weeks of interest.</dd>
+      <dt>Left out</dt><dd>Deposits still in transit, and two delisted positions (ASAPQ, SESN^) that are worth effectively nothing.</dd>
+    </dl>
+  </details>
+</div>
+
+<script>
+  // Shared helpers for every drawing on this page.
+  const money = (v, d = 0) => (v == null || Number.isNaN(v)) ? '—' : (v < 0 ? '−' : '') + '$' + Math.abs(v).toLocaleString('en-US', {minimumFractionDigits: d, maximumFractionDigits: d});
+  const big = (v) => (v == null || Number.isNaN(v)) ? '—' : (v < 0 ? '−' : '') + '$' + (Math.abs(v) >= 1e6 ? (Math.abs(v) / 1e6).toFixed(2) + 'M' : Math.abs(v) >= 1e4 ? (Math.abs(v) / 1e3).toFixed(1) + 'K' : Math.abs(v).toLocaleString('en-US', {maximumFractionDigits: 0}));
+  const signedMoney = (v, d = 0) => (v == null || Number.isNaN(v)) ? '—' : (v > 0 ? '+' : v < 0 ? '−' : '') + '$' + Math.abs(v).toLocaleString('en-US', {minimumFractionDigits: d, maximumFractionDigits: d});
+  const pct = (v, d = 1) => (v == null || Number.isNaN(v)) ? '—' : (v * 100).toFixed(d) + '%';
+  const signedPct = (v, d = 1) => (v == null || Number.isNaN(v)) ? '—' : (v > 0 ? '+' : v < 0 ? '−' : '') + Math.abs(v * 100).toFixed(d) + '%';
+  const rowsOf = (id) => { const g = dash.data(id); return g.status === 'ok' ? g.data : null; };
+  const tone = (el, v) => { el.classList.toggle('pf-up', v > 0); el.classList.toggle('pf-down', v < 0); };
+  const failed = (id) => dash.data(id).status === 'error';
+
+  // A horizontal bar list with a tooltip kept inside its box.
+  const bars = (el, items, opts) => {
+    el.replaceChildren();
+    if (!items) { el.textContent = failed(opts.source) ? 'Failed to load' : ''; el.classList.toggle('dash-skeleton', !failed(opts.source)); return; }
+    el.classList.remove('dash-skeleton');
+    const max = d3.max(items, (d) => Math.abs(d.v)) || 1;
+    const list = document.createElement('div'); list.className = 'pf-bars';
+    const tip = document.createElement('div'); tip.className = 'pf-tip'; tip.hidden = true;
+    for (const d of items) {
+      const row = document.createElement('div'); row.className = 'pf-bar-row';
+      const lab = document.createElement('span'); lab.className = 'pf-bar-label'; lab.textContent = d.label;
+      const track = document.createElement('span'); track.className = 'pf-bar-track';
+      const fill = document.createElement('span'); fill.className = 'pf-bar-fill';
+      fill.style.width = (Math.abs(d.v) / max * 100) + '%'; fill.style.background = d.color || dash.colors[0];
+      track.append(fill);
+      const val = document.createElement('span'); val.className = 'pf-bar-val'; val.textContent = d.text;
+      row.append(lab, track, val);
+      row.addEventListener('mousemove', (e) => {
+        tip.replaceChildren();
+        const h = document.createElement('div'); h.className = 'pf-tip-head'; h.textContent = d.label;
+        tip.append(h);
+        for (const line of d.tip) { const l = document.createElement('div'); l.textContent = line; tip.append(l); }
+        tip.hidden = false;
+        const box = el.getBoundingClientRect();
+        const x = Math.min(e.clientX - box.left + 12, box.width - tip.offsetWidth - 4);
+        const y = Math.min(e.clientY - box.top + 12, box.height - tip.offsetHeight);
+        tip.style.left = Math.max(0, x) + 'px'; tip.style.top = Math.max(0, y) + 'px';
+      });
+      row.addEventListener('mouseleave', () => { tip.hidden = true; });
+      list.append(row);
+    }
+    el.append(list, tip);
+  };
+  window.pf = {money, big, signedMoney, pct, signedPct, rowsOf, tone, failed, bars};
+</script>
+
+<script>
+  // How Robinhood's answers become rows.
+  const J = (a) => (typeof a === 'string' ? JSON.parse(a) : a);
+  const need = (obj, what) => { if (!obj || !obj.data) throw new Error('Robinhood returned no ' + what + ': ' + JSON.stringify(obj).slice(0, 200)); return obj.data; };
+
+  dash.loader('portfolio', {
+    description: 'Each open account from get_accounts, with its get_portfolio breakdown',
+    fn: async ({answer, call}) => {
+      const accts = need(J(answer), 'accounts').accounts.filter((a) => !a.deactivated);
+      const rows = [];
+      for (const a of accts) {
+        const p = need(J(await call('get_portfolio', {account_number: a.account_number}, {poll: false})), 'portfolio');
+        rows.push({
+          account_number: a.account_number, nickname: a.nickname || '', brokerage_account_type: a.brokerage_account_type,
+          type: a.type, management_type: a.management_type,
+          total_value: Number(p.total_value), equity_value: Number(p.equity_value), crypto_value: Number(p.crypto_value),
+          options_value: Number(p.options_value), cash: Number(p.cash), pending_deposits: Number(p.pending_deposits),
+          buying_power: Number(p.buying_power && p.buying_power.buying_power),
+        });
+      }
+      return rows;
+    },
+  });
+
+  dash.loader('positions', {
+    description: 'Open stock and fund positions in every account, from get_equity_positions',
+    fn: async ({answer, call}) => {
+      const accts = need(J(answer), 'accounts').accounts.filter((a) => !a.deactivated);
+      const rows = [];
+      for (const a of accts) {
+        let cursor = null, pages = 0;
+        do {
+          const args = cursor ? {account_number: a.account_number, cursor} : {account_number: a.account_number};
+          const d = need(J(await call('get_equity_positions', args, {poll: false})), 'positions');
+          for (const p of d.positions || []) {
+            rows.push({account_number: a.account_number, symbol: p.symbol, quantity: Number(p.quantity),
+              average_buy_price: p.average_buy_price == null ? null : Number(p.average_buy_price), type: p.type});
+          }
+          cursor = d.next || null; pages += 1;
+        } while (cursor && pages < 5);
+      }
+      return rows;
+    },
+  });
+
+  dash.loader('quotes', {
+    description: 'Latest regular and extended-hours trade, and previous close, per symbol',
+    fn: ({answer}) => need(J(answer), 'quotes').results.filter((r) => r.quote).map((r) => ({
+      symbol: r.quote.symbol,
+      last_trade_price: r.quote.last_trade_price == null ? null : Number(r.quote.last_trade_price),
+      last_trade_time: r.quote.venue_last_trade_time,
+      ext_trade_price: r.quote.last_non_reg_trade_price == null ? null : Number(r.quote.last_non_reg_trade_price),
+      ext_trade_time: r.quote.venue_last_non_reg_trade_time,
+      previous_close: r.quote.adjusted_previous_close == null ? null : Number(r.quote.adjusted_previous_close),
+      state: r.quote.state,
+    })),
+  });
+
+  dash.loader('crypto', {
+    description: 'Crypto positions in each crypto-enabled account, priced with get_crypto_quotes',
+    fn: async ({answer, call}) => {
+      const accts = need(J(answer), 'accounts').accounts.filter((a) => a.rhc_account_number && !a.deactivated);
+      const held = [];
+      for (const a of accts) {
+        const d = need(J(await call('get_crypto_positions', {rhs_account_number: a.rhs_account_number}, {poll: false})), 'crypto positions');
+        for (const p of d.results || []) {
+          const basis = (p.cost_bases || []).reduce((s, c) => s + Number(c.direct_cost_basis || 0), 0);
+          held.push({account_number: a.account_number, code: p.currency.code, name: p.currency.name, quantity: Number(p.quantity), cost_basis: basis});
+        }
+      }
+      if (!held.length) return [];
+      const codes = [...new Set(held.map((h) => h.code))];
+      const q = need(J(await call('get_crypto_quotes', {symbols: codes.map((c) => c + '-USD')}, {poll: false})), 'crypto quotes');
+      const px = Object.fromEntries((q.results || []).map((r) => [r.symbol.replace('USD', ''), r]));
+      return held.map((h) => ({...h, mark_price: px[h.code] ? Number(px[h.code].mark_price) : null, previous_close: px[h.code] ? Number(px[h.code].open_price) : null}));
+    },
+  });
+
+  dash.loader('banking', {
+    description: 'Robinhood checking and savings balances',
+    fn: ({answer}) => (need(J(answer), 'bank accounts').bank_accounts || []).map((b) => ({
+      id: b.id, name: b.name, account_type: b.account_type, last4: b.account_last4, ownership: b.ownership, balance: Number(b.current_balance),
+    })),
+  });
+
+  dash.loader('card', {
+    description: 'Robinhood credit card balance owed',
+    fn: ({answer}) => {
+      const c = need(J(answer), 'credit card').credit_account;
+      return c ? [{role: c.role, status: c.account_status, balance: Number(c.current_balance)}] : [];
+    },
+  });
+</script>
+
+<script>
+  // Calculations readers can check in Sources.
+  dash.calc('acct', {
+    title: 'Robinhood accounts',
+    description: 'Each brokerage account named and valued as Robinhood reports it.',
+    inputs: ['portfolio'],
+    fn: (portfolio) => portfolio.map((p) => {
+      const last4 = String(p.account_number).slice(-4);
+      const managed = p.management_type === 'managed';
+      const ira = p.brokerage_account_type === 'ira_roth' ? 'Roth IRA' : p.brokerage_account_type === 'ira_traditional' ? 'Traditional IRA' : null;
+      const base = p.nickname || ira || (managed ? 'Robinhood Strategies' : 'Individual');
+      const kind = ira || (managed ? 'Managed brokerage' : p.type === 'margin' ? 'Brokerage (margin)' : 'Brokerage');
+      return {account_number: p.account_number, last4, label: base + ' ••' + last4, short: base, kind,
+        total: p.total_value, cash: p.cash, crypto: p.crypto_value, pending: p.pending_deposits};
+    }),
+  });
+
+  dash.calc('holdings', {
+    title: 'Positions valued',
+    description: 'Robinhood and Fidelity positions at the latest trade price, against average cost and the previous close.',
+    inputs: ['positions', 'fidelity', 'quotes', 'acct'],
+    fn: (positions, fidelity, quotes, acct) => {
+      const q = Object.fromEntries(quotes.map((r) => [r.symbol, r]));
+      const names = Object.fromEntries(acct.map((a) => [a.account_number, a.short]));
+      const all = positions.map((p) => ({...p, institution: 'Robinhood'})).concat(fidelity.map((f) => ({account_number: 'fidelity', symbol: f.symbol,
+        quantity: Number(f.quantity), average_buy_price: f.average_buy_price == null ? null : Number(f.average_buy_price), institution: 'Fidelity'})));
+      names.fidelity = 'Fidelity';
+      return all.map((p) => {
+        const r = q[p.symbol];
+        const useExt = r && r.ext_trade_price != null && (r.ext_trade_time || '') > (r.last_trade_time || '');
+        const price = r ? (useExt ? r.ext_trade_price : r.last_trade_price) : null;
+        const prev = r ? r.previous_close : null;
+        const value = price == null ? 0 : p.quantity * price;
+        const cost = p.average_buy_price == null ? null : p.quantity * p.average_buy_price;
+        return {key: p.account_number + ':' + p.symbol, institution: p.institution, account: names[p.account_number] || p.account_number, symbol: p.symbol,
+          qty: p.quantity, avg_cost: p.average_buy_price, price, previous_close: prev, value, cost,
+          pl: cost == null ? null : value - cost, day_change: price == null || prev == null ? 0 : p.quantity * (price - prev)};
+      });
+    },
+  });
+
+  dash.calc('by_symbol', {
+    title: 'Holdings by symbol',
+    description: 'Positions combined across accounts, with asset type, weight, and gain on shares that have a cost.',
+    inputs: ['holdings'],
+    fn: (holdings) => {
+      const TYPES = {
+        'US index ETF': ['VBR', 'SPY', 'VOOG', 'VOO', 'SCHD', 'QQQ', 'IVV', 'SCHG', 'QUAL', 'VB', 'SPHQ', 'VO', 'VYM', 'SPMO', 'IWM', 'VTI', 'RSP', 'DIA', 'VUG', 'VTV'],
+        'Sector ETF': ['SOXX', 'SMH', 'XLK', 'XAR', 'XLF', 'XLE', 'XLV', 'XLI', 'ITA', 'ARKK'],
+        'International ETF': ['INDA', 'VWO', 'VEA', 'FEZ', 'DXJ', 'EMXC', 'ASHR', 'VXUS', 'EFA', 'EEM', 'IEFA', 'FXI', 'EWJ'],
+        'Bonds & T-bills': ['BND', 'SGOV', 'SCHO', 'AGG', 'BIL', 'TLT', 'SHY', 'VGSH', 'BNDX'],
+        'Commodity ETF': ['GLD', 'REMX', 'IAU', 'SLV', 'GLDM', 'USO'],
+      };
+      const typeOf = (s) => Object.keys(TYPES).find((k) => TYPES[k].includes(s)) || 'Stock';
+      const by = new Map();
+      for (const h of holdings) {
+        const g = by.get(h.symbol) || {symbol: h.symbol, qty: 0, value: 0, cost: 0, cost_qty: 0, cost_value: 0, day_change: 0, price: h.price, previous_close: h.previous_close, accounts: []};
+        g.qty += h.qty; g.value += h.value; g.day_change += h.day_change;
+        if (h.cost != null) { g.cost += h.cost; g.cost_qty += h.qty; g.cost_value += h.value; }
+        if (!g.accounts.includes(h.account)) g.accounts.push(h.account);
+        by.set(h.symbol, g);
+      }
+      const total = [...by.values()].reduce((s, g) => s + g.value, 0);
+      return [...by.values()].map((g) => ({
+        symbol: g.symbol, asset_class: typeOf(g.symbol), accounts: g.accounts.sort().join(', '),
+        qty: g.qty, avg_cost: g.cost_qty ? g.cost / g.cost_qty : null, price: g.price,
+        day_pct: g.price == null || !g.previous_close ? null : g.price / g.previous_close - 1,
+        day_change: g.day_change, value: g.value, weight: total ? g.value / total : 0, cost: g.cost_qty ? g.cost : null,
+        pl: g.cost_qty ? g.cost_value - g.cost : null, pl_pct: g.cost_qty && g.cost ? (g.cost_value - g.cost) / g.cost : null,
+      })).sort((a, b) => b.value - a.value);
+    },
+  });
+
+  dash.calc('crypto_valued', {
+    title: 'Crypto valued',
+    description: 'Crypto positions at Robinhood’s mark price, against cost basis.',
+    inputs: ['crypto'],
+    fn: (crypto) => crypto.map((c) => ({code: c.code, qty: c.quantity, cost: c.cost_basis,
+      value: c.mark_price == null ? 0 : c.quantity * c.mark_price,
+      pl: c.mark_price == null ? null : c.quantity * c.mark_price - c.cost_basis,
+      day_change: c.mark_price == null || c.previous_close == null ? 0 : c.quantity * (c.mark_price - c.previous_close)})),
+  });
+
+  dash.calc('alloc', {
+    title: 'Allocation by asset type',
+    description: 'Market value by asset type across Robinhood and Fidelity, with brokerage cash and crypto.',
+    inputs: ['by_symbol', 'crypto_valued', 'acct'],
+    fn: (by_symbol, crypto_valued, acct) => {
+      const m = new Map();
+      for (const s of by_symbol) m.set(s.asset_class, (m.get(s.asset_class) || 0) + s.value);
+      m.set('Crypto', crypto_valued.reduce((s, c) => s + c.value, 0));
+      m.set('Cash', acct.reduce((s, a) => s + a.cash, 0));
+      const total = [...m.values()].reduce((s, v) => s + v, 0);
+      return [...m.entries()].filter(([, v]) => v > 0).map(([asset_class, value]) => ({asset_class, value, share: total ? value / total : 0}))
+        .sort((a, b) => b.value - a.value);
+    },
+  });
+
+  dash.calc('fidelity_valued', {
+    title: 'Fidelity valued',
+    description: 'Each Fidelity holding at the latest trade price, with its move since the previous close.',
+    inputs: ['holdings'],
+    fn: (holdings) => {
+      const fid = holdings.filter((h) => h.institution === 'Fidelity');
+      const total = fid.reduce((s, h) => s + h.value, 0);
+      return fid.map((h) => ({symbol: h.symbol, qty: h.qty, price: h.price, previous_close: h.previous_close,
+        day_pct: h.price == null || !h.previous_close ? null : h.price / h.previous_close - 1,
+        day_change: h.day_change, value: h.value, weight: total ? h.value / total : 0})).sort((a, b) => b.value - a.value);
+    },
+  });
+
+  dash.calc('manual_valued', {
+    title: 'Bank savings valued today',
+    description: 'Balances you gave, with savings grown at its APY from that date to the latest quote time.',
+    inputs: ['manual', 'quotes'],
+    fn: (manual, quotes) => {
+      const now = quotes.reduce((m, q) => [q.last_trade_time, q.ext_trade_time].reduce((a, t) => (t && t.slice(0, 19) > a ? t.slice(0, 19) : a), m), '');
+      return manual.map((m) => {
+        const balance = m.balance == null ? null : Number(m.balance);
+        const apy = m.apy == null ? null : Number(m.apy);
+        const days = now && m.as_of ? Math.max(0, (Date.parse(now + 'Z') - Date.parse(m.as_of + 'T00:00:00Z')) / 86400000) : 0;
+        const value = balance == null ? null : apy ? balance * Math.pow(1 + apy, days / 365) : balance;
+        return {id: m.id, institution: m.institution, account: m.account, category: m.category, balance, apy, as_of: m.as_of,
+          interest: balance == null || !apy ? null : value - balance, value};
+      });
+    },
+  });
+
+  dash.calc('retirement_valued', {
+    title: '401(k) valued today',
+    description: 'Each 401(k) fund’s balance moved by its listed proxy’s change since the date the balance was given.',
+    inputs: ['retirement', 'quotes'],
+    fn: (retirement, quotes) => {
+      const q = Object.fromEntries(quotes.map((r) => [r.symbol, r]));
+      return retirement.map((r) => {
+        const x = r.proxy ? q[r.proxy] : null;
+        const useExt = x && x.ext_trade_price != null && (x.ext_trade_time || '') > (x.last_trade_time || '');
+        const price = x ? (useExt ? x.ext_trade_price : x.last_trade_price) : null;
+        const balance = r.balance == null ? null : Number(r.balance);
+        const base = r.base_price == null ? null : Number(r.base_price);
+        const ratio = price != null && base ? price / base : 1;
+        const value = balance == null ? null : balance * ratio;
+        const day_change = balance == null || price == null || !base || x.previous_close == null ? 0 : balance / base * (price - x.previous_close);
+        return {id: r.id, plan: r.plan, account: r.account, fund: r.fund || r.account, proxy: r.proxy || '', balance, as_of: r.as_of,
+          base_price: base, price, change_pct: balance == null ? null : ratio - 1, value, day_change};
+      });
+    },
+  });
+
+  dash.calc('institutions', {
+    title: 'Accounts by institution',
+    description: 'Every account’s value; card balances count against net worth.',
+    inputs: ['acct', 'holdings', 'banking', 'card', 'manual_valued', 'retirement_valued'],
+    fn: (acct, holdings, banking, card, manual_valued, retirement_valued) => {
+      const rows = [];
+      for (const a of acct) rows.push({id: 'rh-' + a.last4, institution: 'Robinhood', account: a.label, kind: a.kind, value: a.total});
+      const fid = holdings.filter((h) => h.institution === 'Fidelity');
+      if (fid.length) rows.push({id: 'fidelity', institution: 'Fidelity', account: 'Brokerage (' + fid.length + ' positions)', kind: 'Shares at live prices', value: fid.reduce((s, h) => s + h.value, 0)});
+      for (const b of banking) rows.push({id: 'rhb-' + b.last4, institution: 'Robinhood', account: b.name + ' ••' + b.last4, kind: 'Cash', value: b.balance});
+      for (const c of card) rows.push({id: 'rh-card', institution: 'Robinhood', account: 'Gold Card balance owed', kind: 'Liability', value: -c.balance});
+      for (const m of manual_valued) rows.push({id: 'm-' + m.id, institution: m.institution, account: m.account,
+        kind: m.category === 'liability' ? 'Liability' : m.apy ? 'Savings at ' + (m.apy * 100).toFixed(2) + '% APY' : 'Added by hand',
+        value: m.value == null ? null : (m.category === 'liability' ? -m.value : m.value)});
+      for (const r of retirement_valued) rows.push({id: 'r-' + r.id, institution: r.plan, account: r.account + ' · ' + r.fund,
+        kind: r.proxy ? '401(k), tracks ' + r.proxy : '401(k)', value: r.value});
+      const assets = rows.reduce((s, r) => s + (r.value > 0 ? r.value : 0), 0);
+      return rows.map((r) => ({...r, share: r.value != null && r.value > 0 && assets ? r.value / assets : null}));
+    },
+  });
+
+  dash.calc('totals', {
+    title: 'Headline totals',
+    description: 'Net worth, unrealized gain and the move since the last close.',
+    inputs: ['acct', 'holdings', 'by_symbol', 'crypto_valued', 'banking', 'card', 'manual_valued', 'retirement_valued'],
+    fn: (acct, holdings, by_symbol, crypto_valued, banking, card, manual_valued, retirement_valued) => {
+      const manual = manual_valued;
+      const retirement_value = retirement_valued.filter((r) => r.value != null).reduce((s, r) => s + r.value, 0);
+      const retirement_day = retirement_valued.reduce((s, r) => s + r.day_change, 0);
+      const retirement_missing = retirement_valued.filter((r) => r.balance == null).length;
+      const rh_total = acct.reduce((s, a) => s + a.total, 0);
+      const fidelity_value = holdings.filter((h) => h.institution === 'Fidelity').reduce((s, h) => s + h.value, 0);
+      const fidelity_day = holdings.filter((h) => h.institution === 'Fidelity').reduce((s, h) => s + h.day_change, 0);
+      const bank = banking.reduce((s, b) => s + b.balance, 0);
+      const owed = card.reduce((s, c) => s + c.balance, 0);
+      const manualAssets = manual.filter((m) => m.category !== 'liability' && m.value != null).reduce((s, m) => s + m.value, 0);
+      const manualOwed = manual.filter((m) => m.category === 'liability' && m.value != null).reduce((s, m) => s + m.value, 0);
+      const withCost = by_symbol.filter((s) => s.cost != null);
+      const cost = withCost.reduce((s, x) => s + x.cost, 0) + crypto_valued.reduce((s, c) => s + c.cost, 0);
+      const gain = withCost.reduce((s, x) => s + x.pl, 0) + crypto_valued.reduce((s, c) => s + (c.pl || 0), 0);
+      const held = by_symbol.reduce((s, x) => s + x.value, 0) + crypto_valued.reduce((s, c) => s + c.value, 0) + retirement_value;
+      const day = by_symbol.reduce((s, x) => s + x.day_change, 0) + crypto_valued.reduce((s, c) => s + c.day_change, 0) + retirement_day;
+      const top10 = by_symbol.slice(0, 10).reduce((s, x) => s + x.value, 0);
+      const heldStocks = by_symbol.reduce((s, x) => s + x.value, 0);
+      return [{
+        net_worth: rh_total + fidelity_value + bank + manualAssets + retirement_value - owed - manualOwed,
+        retirement_value, retirement_missing,
+        robinhood_net: rh_total + bank - owed, bank_savings: manualAssets - manualOwed,
+        rh_total, fidelity_value, fidelity_day, rh_cash: acct.reduce((s, a) => s + a.cash, 0), rh_pending: acct.reduce((s, a) => s + a.pending, 0),
+        bank, card_owed: owed, manual_assets: manualAssets, manual_owed: manualOwed,
+        manual_missing: manual.filter((m) => m.balance == null).length,
+        cost_basis: cost, unrealized: gain, unrealized_pct: cost ? gain / cost : null,
+        day_change: day, day_pct: held - day ? day / (held - day) : null,
+        top10_share: heldStocks ? top10 / heldStocks : null, positions: by_symbol.length,
+      }];
+    },
+  });
+</script>
+
+<script>
+  // Keep the quote request in step with what you hold.
+  dash.onData(() => {
+    const p = dash.data('positions'), f = dash.data('fidelity'), k = dash.data('retirement');
+    if (p.status !== 'ok' || f.status !== 'ok' || k.status !== 'ok') return;
+    const syms = [...new Set(p.data.concat(f.data).map((r) => r.symbol).concat(k.data.map((r) => r.proxy).filter(Boolean)))].sort();
+    const now = dash.params().symbols || [];
+    if (syms.length && String(syms) !== String(now)) dash.setParams({symbols: syms});
+  });
+  // Show the sentence that matches whether bank savings are filled in.
+  dash.onData(() => {
+    const t = pf.rowsOf('totals');
+    const missing = t && t[0] ? t[0].retirement_missing > 0 : true;
+    for (const el of document.querySelectorAll('.pf-manual-missing')) el.hidden = !missing;
+    for (const el of document.querySelectorAll('.pf-manual-done')) el.hidden = missing;
+  });
+</script>
+
+<script>
+  // Headline numbers.
+  const num = (name, field, fmt, toned) => dash.draw(name, (el) => {
+    const t = pf.rowsOf('totals');
+    const v = t && t[0] ? t[0][field] : null;
+    el.textContent = v == null ? '—' : fmt(v);
+    el.classList.toggle('dash-skeleton', !t && !pf.failed('totals'));
+    if (toned) pf.tone(el, v == null ? 0 : v);
+  });
+  num('t_nw', 'net_worth', pf.money);
+  num('t_unreal', 'unrealized', (v) => (v >= 0 ? 'up ' : 'down ') + pf.money(Math.abs(v)), true);
+  num('t_top10', 'top10_share', (v) => pf.pct(v, 0));
+  num('k_nw', 'net_worth', pf.money);
+  num('k_rh', 'robinhood_net', pf.money);
+  num('k_cap', 'bank_savings', pf.money);
+  dash.draw('k_401', (el) => {
+    const t = pf.rowsOf('totals');
+    el.classList.toggle('dash-skeleton', !t && !pf.failed('totals'));
+    el.textContent = !t || !t[0] ? '—' : t[0].retirement_missing > 0 ? 'Not added yet' : pf.money(t[0].retirement_value);
+    el.classList.toggle('pf-pending', !!(t && t[0] && t[0].retirement_missing > 0));
+  });
+  num('k_fid', 'fidelity_value', pf.money);
+  num('fid_total', 'fidelity_value', pf.money);
+  num('fid_day', 'fidelity_day', (v) => (v >= 0 ? 'up ' : 'down ') + pf.money(Math.abs(v)), true);
+  num('k_unreal', 'unrealized', (v) => pf.signedMoney(v), true);
+  num('k_unreal_pct', 'unrealized_pct', (v) => pf.signedPct(v), true);
+  num('k_cost', 'cost_basis', pf.money);
+  num('k_day', 'day_change', (v) => pf.signedMoney(v), true);
+  num('k_day_pct', 'day_pct', (v) => pf.signedPct(v, 2), true);
+</script>
+
+<script>
+  // Accounts table.
+  dash.draw('inst_rows', (tb) => {
+    tb.replaceChildren();
+    const rows = pf.rowsOf('institutions');
+    if (!rows) return;
+    for (const r of rows) {
+      const tr = document.createElement('tr'); tr.dataset.key = r.id;
+      const cells = [r.institution, r.account, r.kind, r.value == null ? 'Not added yet' : pf.money(r.value), r.share == null ? '' : pf.pct(r.share)];
+      cells.forEach((c, i) => {
+        const td = document.createElement('td'); td.textContent = c;
+        if (i === 1 || i === 2) td.className = 'pf-l' + (i === 2 ? ' pf-hide-narrow pf-muted' : '');
+        if (i === 4) td.classList.add('pf-hide-narrow');
+        if (i === 3 && r.value == null) td.classList.add('pf-pending');
+        if (i === 3 && r.value < 0) td.classList.add('pf-down');
+        if (i === 4 && r.share != null) { const b = document.createElement('span'); b.className = 'pf-cellbar'; b.style.width = Math.max(2, r.share * 80) + 'px'; b.style.background = dash.colors[0]; td.append(b); }
+        tr.append(td);
+      });
+      tb.append(tr);
+    }
+  });
+
+  // Fidelity holdings.
+  dash.draw('fid_rows', (tb) => {
+    tb.replaceChildren();
+    const rows = pf.rowsOf('fidelity_valued');
+    if (!rows) return;
+    for (const r of rows) {
+      const tr = document.createElement('tr'); tr.dataset.key = r.symbol;
+      const up = r.day_pct > 0 ? 'pf-up' : r.day_pct < 0 ? 'pf-down' : '';
+      const cells = [[r.symbol, ''], [r.qty.toLocaleString('en-US', {maximumFractionDigits: 3}), ''],
+        [r.price == null ? 'No quote' : pf.money(r.price, 2), ''], [pf.signedPct(r.day_pct, 2), up],
+        [pf.signedMoney(r.day_change, 2), 'pf-hide-narrow ' + up], [pf.money(r.value, 2), ''], [pf.pct(r.weight), 'pf-hide-narrow']];
+      for (const [text, cls] of cells) { const td = document.createElement('td'); td.textContent = text; if (cls.trim()) td.className = cls.trim(); tr.append(td); }
+      tb.append(tr);
+    }
+  });
+
+  // 401(k) entries.
+  dash.draw('ret_rows', (tb) => {
+    tb.replaceChildren();
+    const rows = pf.rowsOf('retirement_valued');
+    if (!rows) return;
+    for (const r of rows) {
+      const tr = document.createElement('tr'); tr.dataset.key = r.id;
+      const tone = r.change_pct > 0 ? 'pf-up' : r.change_pct < 0 ? 'pf-down' : '';
+      const cells = [[r.fund, ''], [r.proxy, ''],
+        [r.balance == null ? '' : pf.money(r.balance, 2), 'pf-hide-narrow'], [r.as_of || '', 'pf-hide-narrow'],
+        [r.change_pct == null ? '' : pf.signedPct(r.change_pct, 2), tone],
+        [r.value == null ? 'Not added yet' : pf.money(r.value, 2), r.value == null ? 'pf-pending' : '']];
+      for (const [text, cls] of cells) { const td = document.createElement('td'); td.textContent = text; if (cls) td.className = cls; tr.append(td); }
+      tb.append(tr);
+    }
+  });
+
+  // Bank savings entries.
+  dash.draw('manual_rows', (tb) => {
+    tb.replaceChildren();
+    const rows = pf.rowsOf('manual_valued');
+    if (!rows) return;
+    for (const r of rows) {
+      const tr = document.createElement('tr'); tr.dataset.key = r.id;
+      const cells = [[r.institution, ''], [r.account, 'pf-l'],
+        [r.balance == null ? '' : pf.money(r.balance, 2), 'pf-hide-narrow'], [r.as_of || '', 'pf-hide-narrow'],
+        [r.apy ? pf.pct(r.apy, 2) : '', ''], [r.interest == null ? '' : pf.signedMoney(r.interest, 2), r.interest > 0 ? 'pf-up' : ''],
+        [r.value == null ? 'Not added yet' : pf.money(r.value, 2), r.value == null ? 'pf-pending' : '']];
+      for (const [text, cls] of cells) { const td = document.createElement('td'); td.textContent = text; if (cls) td.className = cls; tr.append(td); }
+      tb.append(tr);
+    }
+  });
+</script>
+
+<script>
+  // Bar charts.
+  dash.draw('alloc_chart', (el) => {
+    const rows = pf.rowsOf('alloc');
+    pf.bars(el, rows && rows.map((r, i) => ({label: r.asset_class, v: r.value, color: dash.colors[i % dash.colors.length],
+      text: pf.big(r.value) + ' · ' + pf.pct(r.share), tip: [pf.money(r.value), pf.pct(r.share) + ' of invested value']})), {source: 'alloc'});
+  });
+  dash.draw('top_chart', (el) => {
+    const rows = pf.rowsOf('by_symbol');
+    pf.bars(el, rows && rows.slice(0, 10).map((r) => ({label: r.symbol, v: r.value,
+      text: pf.big(r.value) + ' · ' + pf.pct(r.weight), tip: [pf.money(r.value) + ' · ' + pf.pct(r.weight) + ' of holdings', r.asset_class, 'Held in: ' + r.accounts]})), {source: 'by_symbol'});
+  });
+  dash.draw('win_chart', (el) => {
+    const rows = pf.rowsOf('by_symbol');
+    const top = rows && rows.filter((r) => r.pl > 0).sort((a, b) => b.pl - a.pl).slice(0, 8);
+    pf.bars(el, top && top.map((r) => ({label: r.symbol, v: r.pl, color: 'var(--color-ok)',
+      text: pf.signedMoney(r.pl) + ' · ' + pf.signedPct(r.pl_pct), tip: ['Gain ' + pf.signedMoney(r.pl) + ' (' + pf.signedPct(r.pl_pct) + ')', 'Avg cost ' + pf.money(r.avg_cost, 2) + ' → ' + pf.money(r.price, 2)]})), {source: 'by_symbol'});
+  });
+  dash.draw('lose_chart', (el) => {
+    const rows = pf.rowsOf('by_symbol');
+    const low = rows && rows.filter((r) => r.pl < 0 && r.value > 1).sort((a, b) => a.pl - b.pl).slice(0, 8);
+    pf.bars(el, low && low.map((r) => ({label: r.symbol, v: r.pl, color: 'var(--cds-chart-status-critical)',
+      text: pf.signedMoney(r.pl) + ' · ' + pf.signedPct(r.pl_pct), tip: ['Loss ' + pf.signedMoney(r.pl) + ' (' + pf.signedPct(r.pl_pct) + ')', 'Avg cost ' + pf.money(r.avg_cost, 2) + ' → ' + pf.money(r.price, 2)]})), {source: 'by_symbol'});
+  });
+</script>
+
+<script>
+  // All-holdings table: sort and filter.
+  const state = {key: 'value', dir: -1, q: ''};
+  for (const th of document.querySelectorAll('.pf-holdings th[data-sort]')) {
+    th.addEventListener('click', () => {
+      const k = th.dataset.sort;
+      state.dir = state.key === k ? -state.dir : (['symbol', 'asset_class', 'accounts'].includes(k) ? 1 : -1);
+      state.key = k;
+      for (const o of document.querySelectorAll('.pf-holdings th[data-sort]')) o.removeAttribute('aria-sort');
+      th.setAttribute('aria-sort', state.dir > 0 ? 'ascending' : 'descending');
+      dash.draw('hold_rows');
+    });
+  }
+  for (const inp of document.querySelectorAll('.pf-search')) {
+    inp.addEventListener('input', () => { state.q = inp.value.trim().toLowerCase(); dash.draw('hold_rows'); });
+  }
+  dash.draw('hold_rows', (tb) => {
+    tb.replaceChildren();
+    const rows = pf.rowsOf('by_symbol');
+    if (!rows) return;
+    const list = rows.filter((r) => !state.q || [r.symbol, r.asset_class, r.accounts].join(' ').toLowerCase().includes(state.q))
+      .slice().sort((a, b) => {
+        const x = a[state.key], y = b[state.key];
+        if (x == null && y == null) return 0; if (x == null) return 1; if (y == null) return -1;
+        return (typeof x === 'string' ? x.localeCompare(y) : x - y) * state.dir;
+      });
+    for (const r of list) {
+      const tr = document.createElement('tr'); tr.dataset.key = r.symbol;
+      const cells = [
+        [r.symbol, ''], [r.asset_class, 'pf-l pf-hide-narrow pf-muted'], [r.accounts, 'pf-l pf-hide-narrow pf-wrap'],
+        [r.qty.toLocaleString('en-US', {maximumFractionDigits: 3}), 'pf-hide-narrow'],
+        [r.avg_cost == null ? '' : pf.money(r.avg_cost, 2), 'pf-hide-narrow'],
+        [r.price == null ? 'No quote' : pf.money(r.price, r.price < 1 ? 4 : 2), ''],
+        [pf.signedPct(r.day_pct, 2), r.day_pct > 0 ? 'pf-up' : r.day_pct < 0 ? 'pf-down' : ''],
+        [pf.money(r.value), ''], [pf.pct(r.weight), 'pf-hide-narrow'],
+        [r.pl == null ? '' : pf.signedMoney(r.pl), r.pl > 0 ? 'pf-up' : r.pl < 0 ? 'pf-down' : ''],
+        [r.pl_pct == null ? '' : pf.signedPct(r.pl_pct), r.pl_pct > 0 ? 'pf-up' : r.pl_pct < 0 ? 'pf-down' : ''],
+      ];
+      for (const [text, cls] of cells) { const td = document.createElement('td'); td.textContent = text; if (cls) td.className = cls; tr.append(td); }
+      tb.append(tr);
+    }
+  });
+</script>

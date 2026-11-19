@@ -1,0 +1,16 @@
+[
+  {
+    "id": "fid-AAPL",
+    "account": "Fidelity",
+    "symbol": "AAPL",
+    "quantity": 10,
+    "average_buy_price": null
+  },
+  {
+    "id": "fid-VOO",
+    "account": "Fidelity",
+    "symbol": "VOO",
+    "quantity": 5,
+    "average_buy_price": 500.0
+  }
+]

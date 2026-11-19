@@ -1,0 +1,106 @@
+{
+  "dash/meta": {
+    "title": "Net Worth & Portfolio",
+    "lang": "en"
+  },
+  "dash/params": {
+    "symbols": [
+      "AAPL",
+      "MSFT",
+      "VOO"
+    ]
+  },
+  "datasets": {
+    "portfolio": {
+      "title": "Robinhood account values",
+      "source": {
+        "kind": "call",
+        "connector": "Robinhood",
+        "tool": "get_accounts",
+        "args": {}
+      },
+      "loader": "portfolio (calls get_portfolio per account)"
+    },
+    "positions": {
+      "title": "Robinhood positions",
+      "source": {
+        "kind": "call",
+        "connector": "Robinhood",
+        "tool": "get_accounts",
+        "args": {}
+      },
+      "loader": "positions (calls get_equity_positions per account)"
+    },
+    "quotes": {
+      "title": "Latest stock quotes",
+      "source": {
+        "kind": "call",
+        "connector": "Robinhood",
+        "tool": "get_equity_quotes",
+        "args": {
+          "symbols": "{{symbols}}"
+        },
+        "rules": {
+          "symbols": {
+            "pattern": "^[A-Z0-9.^-]{1,10}$"
+          }
+        }
+      }
+    },
+    "crypto": {
+      "title": "Robinhood crypto",
+      "source": {
+        "kind": "call",
+        "connector": "Robinhood",
+        "tool": "get_accounts",
+        "args": {}
+      },
+      "loader": "crypto (calls get_crypto_positions + get_crypto_quotes)"
+    },
+    "banking": {
+      "title": "Robinhood bank balances",
+      "source": {
+        "kind": "call",
+        "connector": "Robinhood",
+        "tool": "get_bank_accounts",
+        "args": {}
+      }
+    },
+    "card": {
+      "title": "Robinhood card balance",
+      "source": {
+        "kind": "call",
+        "connector": "Robinhood",
+        "tool": "get_credit_card_account",
+        "args": {}
+      }
+    },
+    "fidelity": {
+      "title": "Fidelity share counts",
+      "source": {
+        "kind": "file",
+        "name": "fidelity_holdings.json",
+        "format": "json"
+      },
+      "example": "data/fidelity_holdings.example.json"
+    },
+    "manual": {
+      "title": "Bank balances (manual)",
+      "source": {
+        "kind": "file",
+        "name": "manual_accounts.json",
+        "format": "json"
+      },
+      "example": "data/manual_accounts.example.json"
+    },
+    "retirement": {
+      "title": "401(k) (manual)",
+      "source": {
+        "kind": "file",
+        "name": "retirement.json",
+        "format": "json"
+      },
+      "example": "data/retirement.example.json"
+    }
+  }
+}

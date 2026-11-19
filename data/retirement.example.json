@@ -1,0 +1,12 @@
+[
+  {
+    "id": "401k-sp500",
+    "plan": "Example Plan",
+    "account": "401(k)",
+    "fund": "S&P 500 index trust",
+    "proxy": "VOO",
+    "base_price": 500.0,
+    "balance": 25000,
+    "as_of": "2026-01-01"
+  }
+]

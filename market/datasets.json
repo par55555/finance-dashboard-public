@@ -1,0 +1,166 @@
+{
+  "dash/meta": {
+    "title": "Market Trends",
+    "lang": "en"
+  },
+  "datasets": {
+    "benchmarks": {
+      "title": "Index and sector funds",
+      "source": {
+        "kind": "call",
+        "connector": "Robinhood",
+        "tool": "get_equity_quotes",
+        "args": {
+          "symbols": [
+            "SPY",
+            "QQQ",
+            "DIA",
+            "IWM",
+            "XLK",
+            "XLC",
+            "XLY",
+            "XLF",
+            "XLV",
+            "XLI",
+            "XLE",
+            "XLP",
+            "XLU",
+            "XLB",
+            "XLRE",
+            "SMH",
+            "GLD",
+            "TLT",
+            "USO"
+          ]
+        }
+      }
+    },
+    "indexes": {
+      "title": "S&P 500, Nasdaq-100, VIX",
+      "source": {
+        "kind": "call",
+        "connector": "Robinhood",
+        "tool": "get_index_quotes",
+        "args": {
+          "instrument_ids": [
+            "432fbbb8-b82c-454a-852d-eb85382c7066",
+            "50c298f7-27a8-44a1-b049-ec153cf2892f",
+            "3b912aa2-88f9-4682-8ae3-e39520bdf4db"
+          ]
+        }
+      }
+    },
+    "movers": {
+      "title": "Robinhood daily movers",
+      "source": {
+        "kind": "call",
+        "connector": "Robinhood",
+        "tool": "get_watchlist_items",
+        "args": {
+          "list_id": "eddbebe5-34cc-4df1-953c-d3e3cb55bc19"
+        }
+      }
+    },
+    "trending": {
+      "title": "Trending stocks + analysts",
+      "source": {
+        "kind": "call",
+        "connector": "Robinhood",
+        "tool": "get_watchlist_items",
+        "args": {
+          "list_id": "ea06e8e3-e435-4d19-9b51-33f8930d8cb4"
+        }
+      }
+    },
+    "pullbacks": {
+      "title": "Sold-off large caps screen",
+      "source": {
+        "kind": "call",
+        "connector": "Robinhood",
+        "tool": "preview_scan",
+        "args": {
+          "filters": [
+            {
+              "filter_type": "FILTER_TYPE_INSTRUMENT_TYPE",
+              "predicate": "=",
+              "values": [
+                "STOCK"
+              ]
+            },
+            {
+              "filter_type": "FILTER_TYPE_MARKET_CAP",
+              "predicate": ">",
+              "values": [
+                "50000000000"
+              ]
+            },
+            {
+              "filter_type": "FILTER_TYPE_RSI",
+              "predicate": "<",
+              "values": [
+                "40"
+              ],
+              "length": 14,
+              "interval": "1d"
+            },
+            {
+              "filter_type": "FILTER_TYPE_NET_PROFIT_MARGIN",
+              "predicate": ">",
+              "values": [
+                "0.15"
+              ]
+            }
+          ],
+          "columns": [
+            {
+              "display_name": "Market cap"
+            },
+            {
+              "display_name": "Forward P/E"
+            }
+          ]
+        }
+      }
+    },
+    "earnings": {
+      "title": "Earnings calendar, 14 days",
+      "source": {
+        "kind": "call",
+        "connector": "Robinhood",
+        "tool": "get_earnings_calendar",
+        "args": {
+          "days": 14,
+          "filter": "high_market_cap"
+        }
+      }
+    },
+    "positions": {
+      "title": "Your Robinhood holdings",
+      "source": {
+        "kind": "call",
+        "connector": "Robinhood",
+        "tool": "get_accounts",
+        "args": {}
+      }
+    },
+    "fidelity": {
+      "title": "Your Fidelity holdings",
+      "source": {
+        "kind": "file",
+        "name": "fidelity_holdings.json",
+        "format": "json"
+      },
+      "example": "data/fidelity_holdings.example.json"
+    },
+    "news": {
+      "title": "This week's headlines",
+      "source": {
+        "kind": "file",
+        "name": "news.json",
+        "format": "json"
+      },
+      "example": "data/news.example.json",
+      "schedule": "Refreshed weekday mornings by a scheduled task (see scheduled-task/)"
+    }
+  }
+}
